@@ -69,7 +69,10 @@ export const Chat = () => {
   useEffect(() => {
     if (!currentUser) return;
     
-    const newSocket = io(API_URL);
+    const newSocket = io(API_URL, {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+    });
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
