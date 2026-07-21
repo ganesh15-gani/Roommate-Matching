@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id               String   @id @default(uuid())
+  firebaseUid      String   @unique
+  email            String   @unique
+  phone            String?  @unique
+  isEmailVerified  Boolean  @default(false)
+  isPhoneVerified  Boolean  @default(false)
+  isIdVerified     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  profile          Profile?
+  posts            RoommatePost[]
+  savedPosts       SavedPost[]
+  sentRequests     FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+  friends1         Friend[]        @relation("User1Friends")
+  friends2         Friend[]        @relation("User2Friends")
+  notifications    Notification[]
+  conversations1   Conversation[]  @relation("User1Conversations")
+  conversations2   Conversation[]  @relation("User2Conversations")
+  sentMessages     Message[]       @relation("SentMessages")
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  firstName      String
+  lastName       String
+  age            Int
+  gender         String
+  photoUrl       String?
+  coverUrl       String?
+  bio            String?
+  
+  occupation     String
+  company        String?
+  college        String?
+  
+  // JSON arrays stringified for flexible matching
+  languages      String     // e.g. '["English", "Hindi"]'
+  lifestyle      String     // e.g. '["Early Bird", "Non-Smoker"]'
+  interests      String     // e.g. '["Gaming", "Fitness"]'
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model RoommatePost {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status         String @default("ACTIVE")
+  
+  budget         Int
+  location       String
+  roomType       String
+  sharingType    String
+  moveInDate     DateTime
+  propertyName   String?
+  posterName     String?
+  coverImage     String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  savedBy        SavedPost[]
+}
+
+model SavedPost {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId         String
+  post           RoommatePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, postId])
+}
+
+model FriendRequest {
+  id             String   @id @default(uuid())
+  senderId       String
+  sender         User     @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId     String
+  receiver       User     @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  status         String @default("PENDING")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+}
+
+model Friend {
+  id             String   @id @default(uuid())
+  user1Id        String
+  user1          User     @relation("User1Friends", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id        String
+  user2          User     @relation("User2Friends", fields: [user2Id], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+}
+
+model Notification {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           String   // e.g., "CONNECTION_REQUEST", "ACCEPTED"
+  title          String
+  message        String
+  isRead         Boolean  @default(false)
+  link           String?
+  createdAt      DateTime @default(now())
+}
+
+model Conversation {
+  id            String    @id @default(uuid())
+  user1Id       String
+  user1         User      @relation("User1Conversations", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id       String
+  user2         User      @relation("User2Conversations", fields: [user2Id], references: [id], onDelete: Cascade)
+  
+  isPinned      Boolean   @default(false)
+  isMuted       Boolean   @default(false)
+  
+  messages      Message[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id                 String       @id @default(uuid())
+  conversationId     String
+  conversation       Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderId           String
+  sender             User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  messageType        String       @default("TEXT") // TEXT, IMAGE, AUDIO, FILE
+  text               String?
+  attachmentUrl      String?      // Base64
+  attachmentType     String?
+  
+  replyToId          String?
+  replyTo            Message?     @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies            Message[]    @relation("ReplyTo")
+  
+  forwarded          Boolean      @default(false)
+  edited             Boolean      @default(false)
+  deletedForEveryone Boolean      @default(false)
+  deletedForMe       Boolean      @default(false)
+  isPinned           Boolean      @default(false)
+  isStarred          Boolean      @default(false)
+  
+  status             String       @default("SENT") // SENT, DELIVERED, READ
+  
+  sentAt             DateTime     @default(now())
+  deliveredAt        DateTime?
+  readAt             DateTime?
+  
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
