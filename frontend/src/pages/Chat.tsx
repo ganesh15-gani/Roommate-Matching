@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChatSidebar } from '../components/chat/ChatSidebar';
 import { ChatArea } from '../components/chat/ChatArea';
 import { ChatInput } from '../components/chat/ChatInput';
+import { API_URL } from '../config/api';
 
 export const Chat = () => {
   const location = useLocation();
@@ -23,7 +24,7 @@ export const Chat = () => {
 
   // Fetch current user
   useEffect(() => {
-    fetch('http://localhost:5000/api/me')
+    fetch(`${API_URL}/api/me`)
       .then(res => res.json())
       .then(data => {
          if (data) setCurrentUser(data);
@@ -35,7 +36,7 @@ export const Chat = () => {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:5000/api/chat/conversations');
+      const res = await fetch(`${API_URL}/api/chat/conversations`);
       if (!res.ok) throw new Error('Failed');
       return res.json();
     },
@@ -57,7 +58,7 @@ export const Chat = () => {
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', activeConversation?.id],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:5000/api/chat/messages/${activeConversation.id}`);
+      const res = await fetch(`${API_URL}/api/chat/messages/${activeConversation.id}`);
       if (!res.ok) throw new Error('Failed');
       return res.json();
     },
@@ -68,7 +69,7 @@ export const Chat = () => {
   useEffect(() => {
     if (!currentUser) return;
     
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(API_URL);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Camera } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { API_URL } from '../../config/api';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ export const CreatePostModal = ({ isOpen, onClose, onSuccess, editPost }: Create
       coverImage: photos.length > 0 ? photos[0] : null
     };
 
-    const url = editPost ? `http://localhost:5000/api/posts/${editPost.id}` : 'http://localhost:5000/api/posts';
+    const url = editPost ? `${API_URL}/api/posts/${editPost.id}` : `${API_URL}/api/posts`;
     const method = editPost ? 'PUT' : 'POST';
 
     try {

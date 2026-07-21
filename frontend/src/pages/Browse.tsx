@@ -4,6 +4,7 @@ import { Search, X, Heart, Check, Clock, User as UserIcon, MapPin, Edit2, Trash2
 import { motion } from 'framer-motion';
 import { CreatePostModal } from '../components/roommate/CreatePostModal';
 import { Footer } from '../components/layout/Footer';
+import { API_URL } from '../config/api';
 
 export const Browse = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,16 +35,16 @@ export const Browse = () => {
       if (activeTab === 'Browse') {
         // swipe UI is removed
       } else if (activeTab === 'Your Posts') {
-        const res = await fetch('http://localhost:5000/api/posts/me');
+        const res = await fetch(`${API_URL}/api/posts/me`);
         setMyPosts(await res.json());
       } else if (activeTab === 'Sent Requests') {
-        const res = await fetch('http://localhost:5000/api/requests/sent');
+        const res = await fetch(`${API_URL}/api/requests/sent`);
         setSentRequests(await res.json());
       } else if (activeTab === 'Received') {
-        const res = await fetch('http://localhost:5000/api/requests/received');
+        const res = await fetch(`${API_URL}/api/requests/received`);
         setReceivedRequests(await res.json());
       } else if (activeTab === 'Friends') {
-        const res = await fetch('http://localhost:5000/api/friends');
+        const res = await fetch(`${API_URL}/api/friends`);
         setFriends(await res.json());
       }
     } catch (err) {
@@ -61,7 +62,7 @@ export const Browse = () => {
 
   const handleAcceptRequest = async (requestId: string) => {
     try {
-      await fetch('http://localhost:5000/api/requests/accept', {
+      await fetch(`${API_URL}/api/requests/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId })
@@ -75,7 +76,7 @@ export const Browse = () => {
   const handleConnect = async (receiverId: string) => {
     try {
       // Auto-create or get conversation
-      const res = await fetch('http://localhost:5000/api/chat/conversations', {
+      const res = await fetch(`${API_URL}/api/chat/conversations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiverId })
@@ -92,7 +93,7 @@ export const Browse = () => {
 
   const handleDeletePost = async (postId: string) => {
     try {
-      await fetch(`http://localhost:5000/api/posts/${postId}`, {
+      await fetch(`${API_URL}/api/posts/${postId}`, {
         method: 'DELETE'
       });
       fetchData();
