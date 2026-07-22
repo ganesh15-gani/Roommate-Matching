@@ -18,6 +18,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  
+  button, a, select, [role="button"], label, input[type="radio"], input[type="checkbox"], summary {
+    cursor: pointer;
+  }
 }
 
 /* Custom Utilities for the Exact UI */

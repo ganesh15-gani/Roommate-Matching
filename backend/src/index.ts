@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'https://roommate-matching-frontend.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // --- Socket.IO setup ---
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'https://roommate-matching-frontend.vercel.app',
     methods: ['GET', 'POST']
   }
 });
@@ -182,6 +182,9 @@ app.post('/api/posts', async (req, res) => {
       }
     });
 
+    // Broadcast the new post to all connected clients
+    io.emit('new_post', newPost);
+
     res.json({ success: true, post: newPost });
   } catch (error) {
     console.error(error);
@@ -207,6 +210,8 @@ app.put('/api/posts/:id', async (req, res) => {
         ...(coverImage && { coverImage })
       }
     });
+
+    io.emit('update_post', updatedPost);
 
     res.json({ success: true, post: updatedPost });
   } catch (error) {
