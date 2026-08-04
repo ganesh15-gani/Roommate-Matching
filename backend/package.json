@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx tsx watch src/index.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "node prepare-db.js && npx prisma generate && tsc",
     "start": "node dist/index.js"
   },
   "keywords": [],

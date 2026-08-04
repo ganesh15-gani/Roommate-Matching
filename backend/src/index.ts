@@ -14,7 +14,13 @@ const app = express();
 
 export const prisma = new PrismaClient();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://roommate-matching-beige.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
