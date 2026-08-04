@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  fullName         String
+  email            String   @unique
+  phone            String?
+  gender           String?  // Male, Female, Other
+  age              Int?
+  occupation       String?  // Student, Employee, Business, Freelancer
+  companyOrCollege String?
+  bio              String?
+  profilePhotoUrl  String?
+  
+  // System Fields
+  password         String
+  profileCompleted Boolean  @default(false)
+  role             String   @default("USER")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Connections & Messages
+  sentRequests     ConnectionRequest[] @relation("SentRequests")
+  receivedRequests ConnectionRequest[] @relation("ReceivedRequests")
+  connectionsLeft  Connection[]        @relation("User1Connections")
+  connectionsRight Connection[]        @relation("User2Connections")
+  sentMessages     Message[]           @relation("SentMessages")
+  receivedMessages Message[]           @relation("ReceivedMessages")
+  
+  // Posts & Favorites
+  posts            Post[]              @relation("UserPosts")
+  favorites        Favorite[]          @relation("UserFavorites")
+}
+
+model Post {
+  id               String   @id @default(uuid())
+  authorId         String
+  
+  // Dynamic Stay Details
+  propertyName     String?
+  status           String?  @default("AVAILABLE") // AVAILABLE, TAKEN
+  stayType         String?  // PG, Flat
+  sharingType      String?  // Single, Double, Triple, Four (if PG)
+  flatType         String?  // 1 BHK, 2 BHK, 3 BHK, Villa, Studio (if Flat)
+
+  // Looking For Preferences
+  lookingFor       String?  // Roommate, Room, Both
+  preferredGender  String?  // Male, Female, Any
+  
+  // Lifestyle details
+  smoking          String?  // Yes, No
+  drinking         String?  // Yes, No
+  foodPreference   String?  // Veg, Non Veg, Both
+  sleepingHabit    String?  // Early Sleeper, Night Owl
+  
+  // Budget
+  minBudget        Int?
+  maxBudget        Int?
+  
+  // Location
+  state            String?
+  city             String?
+  area             String?
+  pincode          String?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  author           User       @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  favoritedBy      Favorite[] @relation("PostFavorites")
+}
+
+model ConnectionRequest {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, CANCELLED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender     User     @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  // Unique constraint ensures exactly one connection state between any two users.
+  @@unique([senderId, receiverId])
+}
+
+model Connection {
+  id         String   @id @default(uuid())
+  user1Id    String
+  user2Id    String
+  createdAt  DateTime @default(now())
+
+  user1      User     @relation("User1Connections", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2      User     @relation("User2Connections", fields: [user2Id], references: [id], onDelete: Cascade)
+  
+  // A unique connection between two users
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+  read       Boolean  @default(false)
+
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String
+  postId     String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation("UserFavorites", fields: [userId], references: [id], onDelete: Cascade)
+  post       Post     @relation("PostFavorites", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
